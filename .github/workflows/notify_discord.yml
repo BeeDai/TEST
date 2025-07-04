@@ -32,8 +32,8 @@ jobs:
               continue
             fi
 
-            # メッセージ本文に追記
-            content="$content\n\n## >>> 👤 by $actor\n** >>> 🕒 $formatted_time**\n >>> 💬 $message"
+            # メッセージ本文に追記する
+            content="$content\n\n## >>> 👤 by $actor\n**🕒 $formatted_time**\n💬 $message"
           done
 
           # 通知を送信（内容がヘッダーだけなら送信しない）

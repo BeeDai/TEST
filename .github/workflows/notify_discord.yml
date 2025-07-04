@@ -33,11 +33,11 @@ jobs:
             fi
 
             # メッセージ本文に追記する
-            content="$content\n\n## >>> 👤 by $actor\n**🕒 $formatted_time**\n💬 $message"
+            content="$content\n\n## >>> 👤 by $actor\n** >>> 🕒 $formatted_time**\n >>> 💬 $message"
           done
 
           # 通知を送信（内容がヘッダーだけなら送信しない）
-          if [ "$content" != "# 📢 GitHubにPushがありました！\n>>>" ]; then
+          if [ "$content" != "# 📢 GitHubにPushがありました！\n" ]; then
             curl -X POST -H "Content-Type: application/json" \
               -d "{\"content\": \"$content\"}" \
               ${{ secrets.DISCORD_WEBHOOK }}

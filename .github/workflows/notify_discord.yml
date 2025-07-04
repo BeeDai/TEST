@@ -24,7 +24,7 @@ jobs:
           # 有効なコミットがあったかのフラグ
           valid_commit_found=false
 
-          # 各コミットをループ
+          # 各コミットをループする
           for i in $(seq 0 $((length - 1))); do
             iso_time=$(echo "$commits" | jq -r ".[$i].timestamp")
             formatted_time=$(TZ=Asia/Tokyo date -d "$iso_time" "+%Y年%m月%d日%H:%M:%S")

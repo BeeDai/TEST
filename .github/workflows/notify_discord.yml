@@ -19,7 +19,7 @@ jobs:
           length=$(echo "$commits" | jq length)
 
           # メッセージ本文の初期化
-          content="# 📢 GitHubにPushがありました！\n>>>"
+          content="# 📢 GitHubにPushがありました！\n"
 
           # 有効な（Merge以外の）コミットをループで追記
           for i in $(seq 0 $((length - 1))); do

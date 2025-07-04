@@ -8,25 +8,41 @@ on:
 jobs:
   notify:
     runs-on: ubuntu-latest
+
     steps:
+      # ステップ1: 各Pushされたコミット情報を取得し、通知メッセージを作成
       - name: Notify each pushed commit with formatted message (Skip Merge)
         shell: bash
         run: |
+          # コミット情報を取得
           commits='${{ toJson(github.event.commits) }}'
+          
+          # プッシュしたユーザー名を取得
           actor='${{ github.actor }}'
+          
+          # コミット数を取得
           length=$(echo "$commits" | jq length)
           
+          # 各コミットをループ処理
           for i in $(seq 0 $((length - 1))); do
+
+            # コミット時刻をISO形式で取得
             iso_time=$(echo "$commits" | jq -r ".[$i].timestamp")
+            
+            # 日本時間（JST）に変換してフォーマット
             formatted_time=$(TZ=Asia/Tokyo date -d "$iso_time" "+%Y年%m月%d日%H:%M:%S")
+            
+            # コミットメッセージを取得して、ダブルクォートをエスケープ
             message=$(echo "$commits" | jq -r ".[$i].message" | sed 's/"/\\"/g')
 
-            # Mergeコミットは通知しない
+            # Mergeコミットならスキップ（通知しない）
             if echo "$message" | grep -qi '^Merge'; then
               continue
             fi
 
+            # Discordに通知を送信
             curl -X POST -H "Content-Type: application/json" \
-              -d "{\"content\": \"# 📢 GitHubにPushがありました！\n>>> # 👤 by $actor\n\n**🕒  $formatted_time**\n💬 $message\n\n\"}" \
+              -d "{\"content\": \"# 📢 GitHubにPushがありました！\n>>> ## 👤 by $actor\n\n**🕒  $formatted_time**\n💬 $message\n\n\"}" \
               ${{ secrets.DISCORD_WEBHOOK }}
+
           done

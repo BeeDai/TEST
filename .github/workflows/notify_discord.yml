@@ -32,7 +32,7 @@ jobs:
               continue
             fi
 
-            # メッセージ本文に追記
+            # メッセージ本文に追記する
             content="$content\n\n## >>> 👤 by $actor\n**🕒 $formatted_time**\n💬 $message"
           done
 

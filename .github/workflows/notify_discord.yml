@@ -42,7 +42,7 @@ jobs:
 
             # Discordに通知を送信
             curl -X POST -H "Content-Type: application/json" \
-              -d "{\"content\": \"# 📢 GitHubにPushがありました！\n>>> ## 👤 by $actor\n\n**🕒  $formatted_time**\n💬 $message\n\n\"}" \
+              -d "{\"content\": \"# 📢 GitHubにPushがありまた！\n>>> ## 👤 by $actor\n\n**🕒  $formatted_time**\n💬 $message\n\n\"}" \
               ${{ secrets.DISCORD_WEBHOOK }}
 
           done

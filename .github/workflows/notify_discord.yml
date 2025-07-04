@@ -1,0 +1,32 @@
+name: Notify Discord on Push
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify each pushed commit with formatted message (Skip Merge)
+        shell: bash
+        run: |
+          commits='${{ toJson(github.event.commits) }}'
+          actor='${{ github.actor }}'
+          length=$(echo "$commits" | jq length)
+          
+          for i in $(seq 0 $((length - 1))); do
+            iso_time=$(echo "$commits" | jq -r ".[$i].timestamp")
+            formatted_time=$(TZ=Asia/Tokyo date -d "$iso_time" "+%Y年%m月%d日%H:%M:%S")
+            message=$(echo "$commits" | jq -r ".[$i].message" | sed 's/"/\\"/g')
+
+            # Mergeコミットは通知しない
+            if echo "$message" | grep -qi '^Merge'; then
+              continue
+            fi
+
+            curl -X POST -H "Content-Type: application/json" \
+              -d "{\"content\": \"# 📢 GitHubにPushがありました！\n>>> ## 👤 by $actor\n\n**🕒  $formatted_time**\n💬 $message\n\n\"}" \
+              ${{ secrets.DISCORD_WEBHOOK }}
+          done

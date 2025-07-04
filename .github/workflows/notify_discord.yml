@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Notify all pushed commits with single header (Skip Merge)
+      - name: Notify all pushed commits with single header and count (Skip Merge)
         shell: bash
         run: |
           # コミット情報取得
@@ -24,7 +24,10 @@ jobs:
           # 有効なコミットがあったかのフラグ
           valid_commit_found=false
 
-          # 各コミットをループする
+          # コミット番号カウンター初期化
+          count=1
+
+          # 各コミットをループ
           for i in $(seq 0 $((length - 1))); do
             iso_time=$(echo "$commits" | jq -r ".[$i].timestamp")
             formatted_time=$(TZ=Asia/Tokyo date -d "$iso_time" "+%Y年%m月%d日%H:%M:%S")
@@ -35,14 +38,17 @@ jobs:
               continue
             fi
 
-            # コミット情報を本文に追記
-            content="$content\n\n> 👤 by $actor\n> **🕒 $formatted_time**\n> 💬 $message"
+            # 番号付きでコミット情報を本文に追記
+            content="$content\n\n> No.$count\n> 👤 by $actor\n> **🕒 $formatted_time**\n> 💬 $message"
 
-
+            # 有効コミット発見フラグON
             valid_commit_found=true
+
+            # カウンターを増やす
+            count=$((count + 1))
           done
 
-          # 有効なコミットがあればDiscordに通知
+          # 有効なコミットがあれば通知
           if [ "$valid_commit_found" = true ]; then
             curl -X POST -H "Content-Type: application/json" \
               -d "{\"content\": \"$content\"}" \

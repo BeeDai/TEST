@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Notify all pushed commits in one message (Skip Merge)
+      - name: Notify all pushed commits with single header (Skip Merge)
         shell: bash
         run: |
           # コミット情報取得
@@ -18,10 +18,13 @@ jobs:
           actor='${{ github.actor }}'
           length=$(echo "$commits" | jq length)
 
-          # メッセージ本文の初期化
-          content="# 📢 GitHubにPushがありました！\n"
+          # メッセージ本文の初期化（ヘッダー付き）
+          content="# 📢 GitHubにPushがありました！\n>>>"
 
-          # 有効な（Merge以外の）コミットをループで追記
+          # 有効なコミットがあったかのフラグ
+          valid_commit_found=false
+
+          # 各コミットをループ
           for i in $(seq 0 $((length - 1))); do
             iso_time=$(echo "$commits" | jq -r ".[$i].timestamp")
             formatted_time=$(TZ=Asia/Tokyo date -d "$iso_time" "+%Y年%m月%d日%H:%M:%S")
@@ -32,12 +35,14 @@ jobs:
               continue
             fi
 
-            # メッセージ本文に追記する
-            content="$content\n\n## >>> 👤 by $actor\n**🕒 $formatted_time**\n💬 $message"
+            # コミット情報を本文に追記
+            content="$content\n\n## 👤 by $actor\n**🕒 $formatted_time**\n💬 $message"
+
+            valid_commit_found=true
           done
 
-          # 通知を送信（内容がヘッダーだけなら送信しない）
-          if [ "$content" != "# 📢 GitHubにPushがありました！\n" ]; then
+          # 有効なコミットがあればDiscordに通知
+          if [ "$valid_commit_found" = true ]; then
             curl -X POST -H "Content-Type: application/json" \
               -d "{\"content\": \"$content\"}" \
               ${{ secrets.DISCORD_WEBHOOK }}

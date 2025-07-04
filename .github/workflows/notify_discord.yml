@@ -19,7 +19,7 @@ jobs:
           length=$(echo "$commits" | jq length)
 
           # メッセージ本文の初期化（ヘッダー付き）
-          content="# 📢 GitHubにPushがありました！\n>>>"
+          content="# 📢 GitHubにPushがありました！"
 
           # 有効なコミットがあったかのフラグ
           valid_commit_found=false
@@ -36,7 +36,7 @@ jobs:
             fi
 
             # コミット情報を本文に追記
-            content="$content\n\n## 👤 by $actor\n**🕒 $formatted_time**\n💬 $message"
+            content="$content\n\n>>>　## 👤 by $actor\n**🕒 $formatted_time**\n💬 $message"
 
             valid_commit_found=true
           done

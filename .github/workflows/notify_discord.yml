@@ -39,7 +39,7 @@ jobs:
             fi
 
             # 番号付きでコミット情報を本文に追記
-            content="$content\n\n## No.$count\n> ## 👤 by $actor\n> **🕒 $formatted_time**\n> 💬 $message"
+            content="$content\n\n ## No.$count\n> ## 👤 by $actor\n> **🕒 $formatted_time**\n> 💬 $message"
 
             # 有効コミット発見フラグON
             valid_commit_found=true

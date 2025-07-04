@@ -41,7 +41,7 @@ jobs:
             valid_commit_found=true
           done
 
-          # 有効なコミットがあればDiscordに通
+          # 有効なコミットがあればDiscordに通知
           if [ "$valid_commit_found" = true ]; then
             curl -X POST -H "Content-Type: application/json" \
               -d "{\"content\": \"$content\"}" \

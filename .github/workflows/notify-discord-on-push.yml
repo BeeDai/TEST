@@ -15,7 +15,13 @@ jobs:
           commits='${{ toJson(github.event.commits) }}'
           actor='${{ github.actor }}'
           branch='${{ github.ref_name }}'
+          head_message='${{ github.event.head_commit.message }}'
           length=$(echo "$commits" | jq length)
+
+          # 最新コミットがMergeコミットの場合はPush通知を送らない
+          if echo "$head_message" | grep -qi '^Merge'; then
+            exit 0
+          fi
 
           # メッセージ本文の初期化（ヘッダー付き）
           content="# 📢 GitHubにPushがありました！"
@@ -50,7 +56,13 @@ jobs:
 
           # 有効なコミットがあれば通知
           if [ "$valid_commit_found" = true ]; then
-            curl -X POST -H "Content-Type: application/json" \
-              -d "{\"content\": \"$content\"}" \
-              ${{ secrets.DISCORD_WEBHOOK }}
+            payload=$(jq -n \
+              --arg content "$(printf '%b' "$content")" \
+              '{content: $content}')
+
+            curl --fail-with-body \
+              -X POST \
+              -H "Content-Type: application/json" \
+              -d "$payload" \
+              "${{ secrets.DISCORD_WEBHOOK }}"
           fi

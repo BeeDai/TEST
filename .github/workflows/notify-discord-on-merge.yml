@@ -13,23 +13,34 @@ jobs:
     steps:
       - name: Notify merged pull request
         shell: bash
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          ACTOR: ${{ github.event.pull_request.merged_by.login }}
+          SOURCE_BRANCH: ${{ github.event.pull_request.head.ref }}
+          TARGET_BRANCH: ${{ github.event.pull_request.base.ref }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MERGED_TIME: ${{ github.event.pull_request.merged_at }}
         run: |
-          actor='${{ github.event.pull_request.merged_by.login }}'
-          source_branch='${{ github.event.pull_request.head.ref }}'
-          target_branch='${{ github.event.pull_request.base.ref }}'
-          title='${{ github.event.pull_request.title }}'
-          number='${{ github.event.pull_request.number }}'
-          merged_time='${{ github.event.pull_request.merged_at }}'
+          # 日本時間へ変換
+          formatted_time=$(TZ=Asia/Tokyo date -d "$MERGED_TIME" "+%Y年%m月%d日%H:%M:%S")
 
-          formatted_time=$(TZ=Asia/Tokyo date -d "$merged_time" "+%Y年%m月%d日%H:%M:%S")
-
+          # メッセージ本文作成
           content="# 🔀 GitHubにマージされました！"
-          content="$content\n> 🌿 **$source_branch → $target_branch**"
-          content="$content\n> ## 👤 by $actor"
+          content="$content\n> 🌿 **$SOURCE_BRANCH → $TARGET_BRANCH**"
+          content="$content\n> ## 👤 by $ACTOR"
           content="$content\n> **🕒 $formatted_time**"
-          content="$content\n> 💬 PR #$number"
-          content="$content\n> 📝 $title"
+          content="$content\n> 💬 PR #$PR_NUMBER"
+          content="$content\n> 📝 $PR_TITLE"
 
-          curl -X POST -H "Content-Type: application/json" \
-            -d "{\"content\":\"$(printf '%b' "$content")\"}" \
-            "${{ secrets.DISCORD_WEBHOOK }}"
+          # 改行や記号を安全にJSONへ変換
+          payload=$(jq -n \
+            --arg content "$(printf '%b' "$content")" \
+            '{content: $content}')
+
+          # Discordへ通知
+          curl --fail-with-body \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -d "$payload" \
+            "$DISCORD_WEBHOOK"

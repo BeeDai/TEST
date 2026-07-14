@@ -1,0 +1,43 @@
+name: Notify Discord on Merge
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  notify:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Notify merged pull request
+        shell: bash
+        run: |
+          # マージ情報取得
+          actor='${{ github.actor }}'
+          source_branch='${{ github.event.pull_request.head.ref }}'
+          target_branch='${{ github.event.pull_request.base.ref }}'
+          pull_request_title='${{ github.event.pull_request.title }}'
+          pull_request_number='${{ github.event.pull_request.number }}'
+          merged_time='${{ github.event.pull_request.merged_at }}'
+
+          # 日本時間へ変換
+          formatted_time=$(TZ=Asia/Tokyo date -d "$merged_time" "+%Y年%m月%d日%H:%M:%S")
+
+          # メッセージ本文作成
+          content="# 🔀 GitHubにマージされました！"
+          content="$content\n> 🌿 **$source_branch → $target_branch**"
+          content="$content\n> ## 👤 by $actor"
+          content="$content\n> **🕒 $formatted_time**"
+          content="$content\n> 💬 #$pull_request_number $pull_request_title"
+
+          # Discordへ通知
+          payload=$(jq -n \
+            --arg content "$(printf '%b' "$content")" \
+            '{content: $content}')
+
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d "$payload" \
+            "${{ secrets.DISCORD_WEBHOOK }}"

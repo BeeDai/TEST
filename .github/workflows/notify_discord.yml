@@ -2,9 +2,6 @@ name: Notify Discord on Push
 
 on:
   push:
-    branches:
-      - main
-
 
 jobs:
   notify:
@@ -17,10 +14,12 @@ jobs:
           # コミット情報取得
           commits='${{ toJson(github.event.commits) }}'
           actor='${{ github.actor }}'
+          branch='${{ github.ref_name }}'
           length=$(echo "$commits" | jq length)
 
           # メッセージ本文の初期化（ヘッダー付き）
           content="# 📢 GitHubにPushがありました！"
+          content="$content\n> 🌿 **ブランチ：$branch**"
 
           # 有効なコミットがあったかのフラグ
           valid_commit_found=false

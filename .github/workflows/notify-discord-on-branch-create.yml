@@ -1,0 +1,36 @@
+name: Notify Discord on Branch Create
+
+on:
+  create:
+
+jobs:
+  notify:
+    # ブランチ作成時のみ実行（タグ作成は除外）
+    if: github.event.ref_type == 'branch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Notify branch created
+        shell: bash
+        run: |
+          # 情報取得
+          actor='${{ github.actor }}'
+          branch='${{ github.event.ref }}'
+          formatted_time=$(TZ=Asia/Tokyo date "+%Y年%m月%d日%H:%M:%S")
+
+          # メッセージ本文作成
+          content="# 🌱 GitHubでブランチが作成されました！"
+          content="$content\n> 🌿 **ブランチ：$branch**"
+          content="$content\n> ## 👤 by $actor"
+          content="$content\n> **🕒 $formatted_time**"
+
+          # Discordへ通知
+          payload=$(jq -n \
+            --arg content "$(printf '%b' "$content")" \
+            '{content: $content}')
+
+          curl --fail-with-body \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -d "$payload" \
+            "${{ secrets.DISCORD_WEBHOOK }}"
